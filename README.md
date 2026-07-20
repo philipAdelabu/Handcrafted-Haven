@@ -1,36 +1,98 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-## Getting Started
+HandCrafted Haven E-commerce
 
-First, run the development server:
+SUMMARY
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+We, as a team, need to ensure that all the required items to make the project a success is achieved 
+ in a short time before the end week five. Each of us we take a turn in leading the team. Plan of the design should be 
+ be done to ensure the requirements are met.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+  Team Members
+ * Philip Adelabu
+ * Luca Jahzeel Chilan Beretta
+    
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+DESIGN AND STYLING
 
-## Learn More
+Element	Color
+Background: #F8F5F2 (Warm Cream)
+Primary: #8B5E3C (Wood Brown)
+Secondary: #D8C3A5 (Sand)
+Accent: #C97A40 (Terracotta)
+Text:#2F2F2F (Charcoal)
 
-To learn more about Next.js, take a look at the following resources:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## Deploy on Vercel
+UI Component
+Buttons:
+Primary: Brown with white text
+Secondary: Beige with brown text
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Cards:
+Soft shadow
+Rounded edges
+White background
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Icons:
+
+Feather Icons
+Lucide Icons
+Font Awesome
+
+
+Technology Stack
+Frontend: React + Vite
+Styling: Tailwind CSS
+UI Components: shadcn/ui
+Icons: Lucide React
+Animations: Framer Motion
+Backend: Node.js + Express
+Database: MongoDB + Mongoose
+
+USER STORY 
+
+1. User Registration
+
+As a new customer, I want to create an account so that I can save my personal information and track my orders.
+
+2. User Login
+
+As a registered customer, I want to log in securely so that I can access my account and purchase products.
+
+3. Browse Products
+
+As a visitor, I want to browse handcrafted products by category so that I can easily discover items I'm interested in.
+
+4. Search Products
+
+As a customer, I want to search for products using keywords so that I can quickly find specific handcrafted items.
+
+5. Filter and Sort Products
+
+As a customer, I want to filter and sort products by price, category, popularity, and ratings so that I can find products that match my preferences.
+
+6. View Product Details
+
+As a customer, I want to view detailed product information, including images, descriptions, materials, dimensions, and customer reviews so that I can make informed purchasing decisions.
+
+7. Add Items to Cart
+
+As a customer, I want to add products to my shopping cart so that I can purchase multiple items at once.
+
+8. Manage Shopping Cart
+
+As a customer, I want to update quantities or remove items from my shopping cart so that I can modify my purchase before checkout.
+
+9. Secure Checkout
+
+As a customer, I want to complete my purchase using secure payment methods so that I can safely buy handcrafted products online.
+
+10. Track Orders
+
+As a customer, I want to view my order history and track the shipping status of my orders so that I know when my purchases will arrive.
+
+
+  
+  
