@@ -1,22 +1,9 @@
-import { PrismaClient, Category } from '@prisma/client'
-import { hash } from 'bcryptjs'
+const { PrismaClient } = require('@prisma/client')
+const { hash } = require('bcryptjs')
 
 const prisma = new PrismaClient()
 
-// Define product type with Decimal values as numbers (Prisma will convert)
-interface ProductSeed {
-  name: string
-  slug: string
-  description: string
-  price: number
-  compareAtPrice: number | null
-  stock: number
-  category: Category
-  isFeatured: boolean
-  images: string[]
-}
-
-const products: ProductSeed[] = [
+const products = [
   // JEWELRY
   {
     name: 'Handmade Silver Leaf Necklace',
@@ -356,32 +343,13 @@ async function main() {
     try {
       await prisma.product.upsert({
         where: { slug: product.slug },
-        update: {
-          name: product.name,
-          description: product.description,
-          price: product.price,
-          compareAtPrice: product.compareAtPrice,
-          stock: product.stock,
-          category: product.category,
-          isFeatured: product.isFeatured,
-          images: product.images,
-        },
-        create: {
-          name: product.name,
-          slug: product.slug,
-          description: product.description,
-          price: product.price,
-          compareAtPrice: product.compareAtPrice,
-          stock: product.stock,
-          category: product.category,
-          isFeatured: product.isFeatured,
-          images: product.images,
-        },
+        update: product,
+        create: product,
       })
       productCount++
       console.log(`  ✅ Added: ${product.name}`)
     } catch (error) {
-      console.error(`  ❌ Failed to add: ${product.name}`, error)
+      console.error(`  ❌ Failed to add: ${product.name}`, error.message)
     }
   }
   console.log(`✅ ${productCount} products seeded successfully!`)

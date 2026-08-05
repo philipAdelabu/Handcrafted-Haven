@@ -1,6 +1,5 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* src/app/globals.css */
+@import "tailwindcss";
 
 @layer base {
   :root {
@@ -9,24 +8,27 @@
   }
 
   * {
-    @apply border-gray-200;
+    border-color: var(--color-gray-200); /* Use a CSS variable */
   }
   
   body {
-    @apply bg-white text-gray-900;
+    background-color: var(--color-white);
+    color: var(--color-gray-900);
   }
 }
 
 @layer utilities {
   .prose {
-    @apply text-gray-700;
+    color: var(--color-gray-700);
   }
   
   .prose p {
-    @apply mb-4;
+    margin-bottom: 1rem;
   }
   
   .prose ul {
-    @apply list-disc pl-5 mb-4;
+    list-style-type: disc;
+    padding-left: 1.25rem;
+    margin-bottom: 1rem;
   }
 }

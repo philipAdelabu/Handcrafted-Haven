@@ -6,8 +6,24 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 
 export function Header() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+
+  // Show loading state
+  if (status === 'loading') {
+    return (
+      <header className="bg-white shadow-sm">
+        <div className="container mx-auto px-4">
+          <div className="flex justify-between items-center h-16">
+            <Link href="/" className="text-2xl font-bold text-primary-600">
+              Handcrafted Haven
+            </Link>
+            <div className="w-20 h-10 bg-gray-200 animate-pulse rounded"></div>
+          </div>
+        </div>
+      </header>
+    )
+  }
 
   return (
     <header className="bg-white shadow-sm">
@@ -23,22 +39,28 @@ export function Header() {
             <Link href="/products" className="hover:text-primary-600">
               Products
             </Link>
+            
             {session ? (
               <>
                 <Link href="/orders" className="hover:text-primary-600">
                   Orders
                 </Link>
                 {session.user?.role === 'ADMIN' && (
-                  <Link href="/admin" className="hover:text-primary-600">
-                    Admin
+                  <Link href="/admin" className="hover:text-primary-600 font-semibold text-primary-600">
+                    Admin Panel
                   </Link>
                 )}
                 <Link href="/cart" className="hover:text-primary-600">
                   Cart
                 </Link>
-                <Button variant="outline" onClick={() => signOut()}>
-                  Sign Out
-                </Button>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-gray-600">
+                    {session.user?.name || session.user?.email}
+                  </span>
+                  <Button variant="outline" onClick={() => signOut()}>
+                    Sign Out
+                  </Button>
+                </div>
               </>
             ) : (
               <>
@@ -56,6 +78,7 @@ export function Header() {
           <button
             className="md:hidden"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
+            aria-label="Toggle menu"
           >
             <svg
               className="w-6 h-6"
@@ -88,16 +111,21 @@ export function Header() {
                     Orders
                   </Link>
                   {session.user?.role === 'ADMIN' && (
-                    <Link href="/admin" className="hover:text-primary-600">
-                      Admin
+                    <Link href="/admin" className="hover:text-primary-600 font-semibold text-primary-600">
+                      Admin Panel
                     </Link>
                   )}
                   <Link href="/cart" className="hover:text-primary-600">
                     Cart
                   </Link>
-                  <Button variant="outline" onClick={() => signOut()}>
-                    Sign Out
-                  </Button>
+                  <div className="pt-2 border-t">
+                    <p className="text-sm text-gray-600 mb-2">
+                      {session.user?.name || session.user?.email}
+                    </p>
+                    <Button variant="outline" onClick={() => signOut()} className="w-full">
+                      Sign Out
+                    </Button>
+                  </div>
                 </>
               ) : (
                 <>
