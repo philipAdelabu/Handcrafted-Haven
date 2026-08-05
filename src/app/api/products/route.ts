@@ -1,110 +1,88 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { z } from 'zod'
 
-const productQuerySchema = z.object({
-  category: z.string().optional(),
-  minPrice: z.string().transform(Number).optional(),
-  maxPrice: z.string().transform(Number).optional(),
-  search: z.string().optional(),
-  featured: z.string().transform(Number).optional(),
-  page: z.string().transform(Number).default('1'),
-  limit: z.string().transform(Number).default('12'),
-  sort: z.enum(['newest', 'price-asc', 'price-desc', 'popular']).default('newest'),
+const productSchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  slug: z.string().min(1, 'Slug is required'),
+  description: z.string().min(1, 'Description is required'),
+  price: z.number().positive('Price must be positive'),
+  compareAtPrice: z.number().positive().optional().nullable(),
+  stock: z.number().int().min(0, 'Stock must be 0 or greater'),
+  categoryId: z.string().optional().nullable(),
+  images: z.array(z.string()).default([]),
+  isActive: z.boolean().default(true),
+  isFeatured: z.boolean().default(false),
 })
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const params = productQuerySchema.parse({
-      category: searchParams.get('category'),
-      minPrice: searchParams.get('minPrice'),
-      maxPrice: searchParams.get('maxPrice'),
-      search: searchParams.get('search'),
-      featured: searchParams.get('featured'),
-      page: searchParams.get('page'),
-      limit: searchParams.get('limit'),
-      sort: searchParams.get('sort'),
-    })
+    const categoryId = searchParams.get('categoryId')
+    const isActive = searchParams.get('isActive')
+    const featured = searchParams.get('featured')
+    const search = searchParams.get('search')
+    const page = parseInt(searchParams.get('page') || '1')
+    const limit = parseInt(searchParams.get('limit') || '12')
 
-    const where: any = {
-      isActive: true,
+    const where: any = {}
+    
+    if (categoryId) {
+      where.categoryId = categoryId
     }
-
-    if (params.category) {
-      where.category = params.category
+    
+    if (isActive !== null) {
+      where.isActive = isActive === 'true'
     }
-
-    if (params.search) {
+    
+    if (featured === 'true') {
+      where.isFeatured = true
+    }
+    
+    if (search) {
       where.OR = [
-        { name: { contains: params.search, mode: 'insensitive' } },
-        { description: { contains: params.search, mode: 'insensitive' } },
+        { name: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
       ]
     }
 
-    if (params.minPrice || params.maxPrice) {
-      where.price = {}
-      if (params.minPrice) where.price.gte = params.minPrice
-      if (params.maxPrice) where.price.lte = params.maxPrice
-    }
-
-    if (params.featured) {
-      where.isFeatured = true
-    }
-
-    const orderBy: any = {}
-    switch (params.sort) {
-      case 'price-asc':
-        orderBy.price = 'asc'
-        break
-      case 'price-desc':
-        orderBy.price = 'desc'
-        break
-      case 'popular':
-        // In production, you'd sort by sales count or reviews
-        orderBy.createdAt = 'desc'
-        break
-      default:
-        orderBy.createdAt = 'desc'
-    }
-
-    const skip = (params.page - 1) * params.limit
+    const skip = (page - 1) * limit
 
     const [products, total] = await Promise.all([
       prisma.product.findMany({
         where,
-        orderBy,
-        skip,
-        take: params.limit,
         include: {
+          category: true,
           reviews: {
             select: {
               rating: true,
             },
           },
         },
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
       }),
       prisma.product.count({ where }),
     ])
 
-    const productsWithRating = products.map(product => {
-      const avgRating = product.reviews.length > 0
+    const productsWithRating = products.map(product => ({
+      ...product,
+      averageRating: product.reviews.length > 0
         ? product.reviews.reduce((acc, r) => acc + r.rating, 0) / product.reviews.length
-        : 0
-      return {
-        ...product,
-        averageRating: avgRating,
-        reviewCount: product.reviews.length,
-      }
-    })
+        : 0,
+      reviewCount: product.reviews.length,
+    }))
 
     return NextResponse.json({
       products: productsWithRating,
       pagination: {
-        page: params.page,
-        limit: params.limit,
+        page,
+        limit,
         total,
-        totalPages: Math.ceil(total / params.limit),
+        totalPages: Math.ceil(total / limit),
       },
     })
   } catch (error) {
@@ -118,25 +96,55 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
+    const session = await getServerSession(authOptions)
     
-    // In production, check if user is authenticated and has seller/admin role
+    if (!session?.user || session.user.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const body = await request.json()
+    const validatedData = productSchema.parse(body)
+
+    // Check if product with same slug exists
+    const existing = await prisma.product.findUnique({
+      where: { slug: validatedData.slug },
+    })
+
+    if (existing) {
+      return NextResponse.json(
+        { error: 'Product with this slug already exists' },
+        { status: 400 }
+      )
+    }
+
+    // Verify category exists if provided
+    if (validatedData.categoryId) {
+      const category = await prisma.category.findUnique({
+        where: { id: validatedData.categoryId },
+      })
+      if (!category) {
+        return NextResponse.json(
+          { error: 'Category not found' },
+          { status: 400 }
+        )
+      }
+    }
+
     const product = await prisma.product.create({
-      data: {
-        name: body.name,
-        slug: body.slug || body.name.toLowerCase().replace(/\s+/g, '-'),
-        description: body.description,
-        price: body.price,
-        compareAtPrice: body.compareAtPrice,
-        stock: body.stock,
-        category: body.category,
-        images: body.images || [],
-        sellerId: body.sellerId,
+      data: validatedData,
+      include: {
+        category: true,
       },
     })
 
     return NextResponse.json(product, { status: 201 })
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: error.errors[0].message },
+        { status: 400 }
+      )
+    }
     console.error('Create Product Error:', error)
     return NextResponse.json(
       { error: 'Failed to create product' },
