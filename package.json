@@ -2,7 +2,7 @@
   "name": "handcrated Haven",
   "version": "0.1.0",
   "private": true,
-    "prisma": {
+  "prisma": {
     "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
   },
   "scripts": {
@@ -12,9 +12,10 @@
     "lint": "next lint",
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
-    "db:generate": "prisma generate",
+       "db:generate": "prisma generate",
     "db:seed": "node prisma/seed.js",
-    "db:seed:ts": "ts-node --compiler-options {\"module\":\"CommonJS\",\"target\":\"ES2020\",\"downlevelIteration\":true} prisma/seed.ts",
+    "db:seed:ts": "ts-node --project tsconfig.seed.json prisma/seed.ts",
+    "db:reset": "prisma db push --force-reset && npm run db:seed",
     "postinstall": "prisma generate"
   },
   "dependencies": {
@@ -62,6 +63,7 @@
     "prettier-plugin-tailwindcss": "^0.8.1",
     "prisma": "^5.22.0",
     "tailwindcss": "^4",
+    "tsx": "^4.23.8",
     "typescript": "^5"
   }
 }
