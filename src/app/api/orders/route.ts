@@ -2,11 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/db'
-import Stripe from 'stripe'
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2023-10-16',
-})
 
 export async function GET() {
   try {
@@ -105,33 +100,12 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    // Create Stripe payment intent
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(total * 100),
-      currency: 'usd',
-      metadata: {
-        orderId: order.id,
-        userId: session.user.id,
-      },
-    })
-
-    // Update order with payment intent ID
-    await prisma.order.update({
-      where: { id: order.id },
-      data: {
-        stripePaymentIntentId: paymentIntent.id,
-      },
-    })
-
     // Clear cart
     await prisma.cartItem.deleteMany({
       where: { cartId: cart.id },
     })
 
-    return NextResponse.json({
-      order,
-      clientSecret: paymentIntent.client_secret,
-    })
+    return NextResponse.json(order, { status: 201 })
   } catch (error) {
     console.error('Create Order Error:', error)
     return NextResponse.json(

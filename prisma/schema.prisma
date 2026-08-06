@@ -51,6 +51,7 @@ model Product {
   stock          Int       @default(0)
   categoryId     String?
   category       Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  categoryEnum ProductCategory @default(OTHER) // Add this field
   images         String[]  @default([])
   isActive       Boolean   @default(true)
   isFeatured     Boolean   @default(false)

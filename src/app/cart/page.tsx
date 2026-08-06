@@ -145,7 +145,7 @@ export default function CartPage() {
                     {item.product.name}
                   </h3>
                 </Link>
-                <p className="text-gray-600">${item.product.price.toFixed(2)}</p>
+                <p className="text-gray-600">${Number(item.product.price).toFixed(2)}</p>
               </div>
 
               <div className="flex items-center gap-2">

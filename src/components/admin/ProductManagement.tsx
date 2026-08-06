@@ -1,6 +1,18 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { 
+  Plus, 
+  Search, 
+  Edit, 
+  Trash2, 
+  Eye, 
+  EyeOff,
+  Star,
+  StarOff,
+  Package,
+  AlertCircle
+} from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
@@ -78,6 +90,24 @@ export function ProductManagement() {
     }
   }
 
+  const handleToggleFeatured = async (id: string, currentStatus: boolean) => {
+    try {
+      const response = await fetch(`/api/products/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isFeatured: !currentStatus }),
+      })
+
+      if (!response.ok) throw new Error('Failed to update product')
+      
+      const updated = await response.json()
+      setProducts(products.map(p => p.id === id ? updated : p))
+    } catch (error) {
+      console.error('Update error:', error)
+      alert('Failed to update product')
+    }
+  }
+
   const filteredProducts = products.filter(p =>
     p.name.toLowerCase().includes(searchTerm.toLowerCase())
   )
@@ -92,66 +122,83 @@ export function ProductManagement() {
 
   return (
     <div>
+      {/* Header with Add Button */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-        <div className="flex-1 w-full sm:w-auto">
+        <div className="relative flex-1 w-full sm:w-auto">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           <Input
             type="text"
-            placeholder="Search products..."
+            placeholder="Search products by name..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="max-w-sm"
+            className="pl-10 w-full max-w-sm"
           />
         </div>
-        <Button onClick={() => {
-          setEditingProduct(null)
-          setShowForm(true)
-        }}>
+        <Button 
+          onClick={() => {
+            setEditingProduct(null)
+            setShowForm(true)
+          }}
+          className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-md hover:shadow-lg transition-all duration-300"
+        >
+          <Plus className="w-4 h-4 mr-2" />
           Add New Product
         </Button>
       </div>
 
+      {/* Products Table */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Product
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Price
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Stock
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Category
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Featured
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredProducts.length === 0 ? (
+        {filteredProducts.length === 0 ? (
+          <div className="text-center py-16">
+            <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-xl font-medium text-gray-600 mb-2">No Products Found</h3>
+            <p className="text-gray-400 mb-4">Get started by adding your first product.</p>
+            <Button 
+              onClick={() => {
+                setEditingProduct(null)
+                setShowForm(true)
+              }}
+              className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add New Product
+            </Button>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
-                    No products found. Click "Add New Product" to get started.
-                  </td>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Product
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Price
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Stock
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Category
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Featured
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
                 </tr>
-              ) : (
-                filteredProducts.map((product) => (
-                  <tr key={product.id}>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredProducts.map((product) => (
+                  <tr key={product.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         {product.images[0] && (
-                          <div className="relative w-10 h-10 rounded overflow-hidden mr-3 flex-shrink-0">
+                          <div className="relative w-10 h-10 rounded-lg overflow-hidden mr-3 flex-shrink-0 bg-gray-100">
                             <Image
                               src={product.images[0]}
                               alt={product.name}
@@ -166,69 +213,93 @@ export function ProductManagement() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
+                      <div className="text-sm font-semibold text-gray-900">
                         ${product.price.toFixed(2)}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className={`text-sm ${product.stock < 10 ? 'text-red-600 font-semibold' : 'text-gray-900'}`}>
-                        {product.stock}
-                      </div>
+                      {product.stock < 10 ? (
+                        <div className="flex items-center text-red-600">
+                          <AlertCircle className="w-4 h-4 mr-1" />
+                          <span className="text-sm font-medium">{product.stock}</span>
+                        </div>
+                      ) : (
+                        <div className="text-sm text-gray-900">{product.stock}</div>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
+                      <span className="px-2 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-800">
                         {product.category?.name || 'Uncategorized'}
-                      </div>
+                      </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <button
                         onClick={() => handleToggleActive(product.id, product.isActive)}
-                        className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                        className={`flex items-center gap-1 px-3 py-1 text-xs font-semibold rounded-full transition-colors ${
                           product.isActive
                             ? 'bg-green-100 text-green-800 hover:bg-green-200'
                             : 'bg-red-100 text-red-800 hover:bg-red-200'
                         }`}
                       >
+                        {product.isActive ? (
+                          <Eye className="w-3 h-3" />
+                        ) : (
+                          <EyeOff className="w-3 h-3" />
+                        )}
                         {product.isActive ? 'Active' : 'Inactive'}
                       </button>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                        product.isFeatured
-                          ? 'bg-yellow-100 text-yellow-800'
-                          : 'bg-gray-100 text-gray-500'
-                      }`}>
-                        {product.isFeatured ? 'Yes' : 'No'}
-                      </span>
+                      <button
+                        onClick={() => handleToggleFeatured(product.id, product.isFeatured)}
+                        className={`flex items-center gap-1 px-3 py-1 text-xs font-semibold rounded-full transition-colors ${
+                          product.isFeatured
+                            ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
+                            : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                        }`}
+                      >
+                        {product.isFeatured ? (
+                          <Star className="w-3 h-3 fill-current" />
+                        ) : (
+                          <StarOff className="w-3 h-3" />
+                        )}
+                        {product.isFeatured ? 'Featured' : 'Not'}
+                      </button>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          setEditingProduct(product)
-                          setShowForm(true)
-                        }}
-                        className="mr-2"
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="danger"
-                        onClick={() => handleDelete(product.id)}
-                      >
-                        Delete
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setEditingProduct(product)
+                            setShowForm(true)
+                          }}
+                          className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                        >
+                          <Edit className="w-3 h-3 mr-1" />
+                          Edit
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="danger"
+                          onClick={() => handleDelete(product.id)}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="w-3 h-3 mr-1" />
+                          Delete
+                        </Button>
+                      </div>
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
+      {/* Product Form Modal */}
       {showForm && (
         <ProductForm
           product={editingProduct}

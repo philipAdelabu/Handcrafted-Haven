@@ -42,9 +42,9 @@ export function Header() {
             
             {session ? (
               <>
-                <Link href="/orders" className="hover:text-primary-600">
-                  Orders
-                </Link>
+                   <Link href="/orders" className="hover:text-primary-600">
+                    Orders
+                  </Link>
                 {session.user?.role === 'ADMIN' && (
                   <Link href="/admin" className="hover:text-primary-600 font-semibold text-primary-600">
                     Admin Panel
