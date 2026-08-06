@@ -32,12 +32,12 @@ export function Footer() {
             <h4 className="font-semibold mb-4">Connect</h4>
             <ul className="space-y-2 text-gray-400">
               <li>Email: info@handcraftedhaven.com</li>
-              <li>Phone: (555) 123-4567</li>
+              <li>Phone: (123) 123-4567</li>
             </ul>
           </div>
         </div>
         <div className="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
-          <p>&copy; 2024 Handcrafted Haven. All rights reserved.</p>
+          <p>&copy; 2026 Handcrafted Haven. All rights reserved.</p>
         </div>
       </div>
     </footer>

@@ -4,19 +4,21 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { z } from 'zod'
 
+// Schema for product creation
 const productSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   slug: z.string().min(1, 'Slug is required'),
   description: z.string().min(1, 'Description is required'),
   price: z.number().positive('Price must be positive'),
-  compareAtPrice: z.number().positive().optional().nullable(),
+  compareAtPrice: z.number().positive().nullable().optional(),
   stock: z.number().int().min(0, 'Stock must be 0 or greater'),
-  categoryId: z.string().optional().nullable(),
+  categoryId: z.string().nullable().optional(),
   images: z.array(z.string()).default([]),
   isActive: z.boolean().default(true),
   isFeatured: z.boolean().default(false),
 })
 
+// GET - Fetch all products with pagination and filtering
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
@@ -26,7 +28,9 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search')
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '12')
+    const sort = searchParams.get('sort') || 'newest'
 
+    // Build where clause
     const where: any = {}
     
     if (categoryId) {
@@ -48,8 +52,26 @@ export async function GET(request: NextRequest) {
       ]
     }
 
+    // Build order by
+    let orderBy: any = {}
+    switch (sort) {
+      case 'price-asc':
+        orderBy = { price: 'asc' }
+        break
+      case 'price-desc':
+        orderBy = { price: 'desc' }
+        break
+      case 'popular':
+        orderBy = { reviews: { _count: 'desc' } }
+        break
+      case 'newest':
+      default:
+        orderBy = { createdAt: 'desc' }
+    }
+
     const skip = (page - 1) * limit
 
+    // Get products and total count
     const [products, total] = await Promise.all([
       prisma.product.findMany({
         where,
@@ -63,13 +85,16 @@ export async function GET(request: NextRequest) {
         },
         skip,
         take: limit,
-        orderBy: { createdAt: 'desc' },
+        orderBy,
       }),
       prisma.product.count({ where }),
     ])
 
+    // Transform products with computed fields
     const productsWithRating = products.map(product => ({
       ...product,
+      price: Number(product.price),
+      compareAtPrice: product.compareAtPrice ? Number(product.compareAtPrice) : null,
       averageRating: product.reviews.length > 0
         ? product.reviews.reduce((acc, r) => acc + r.rating, 0) / product.reviews.length
         : 0,
@@ -86,7 +111,7 @@ export async function GET(request: NextRequest) {
       },
     })
   } catch (error) {
-    console.error('Products API Error:', error)
+    console.error('Products GET API Error:', error)
     return NextResponse.json(
       { error: 'Failed to fetch products' },
       { status: 500 }
@@ -94,14 +119,27 @@ export async function GET(request: NextRequest) {
   }
 }
 
+// POST - Create a new product
 export async function POST(request: NextRequest) {
   try {
+    // Check authentication
     const session = await getServerSession(authOptions)
     
-    if (!session?.user || session.user.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    if (!session?.user) {
+      return NextResponse.json(
+        { error: 'Unauthorized - Please sign in' },
+        { status: 401 }
+      )
     }
 
+    if (session.user.role !== 'ADMIN') {
+      return NextResponse.json(
+        { error: 'Forbidden - Admin access required' },
+        { status: 403 }
+      )
+    }
+
+    // Parse and validate request body
     const body = await request.json()
     const validatedData = productSchema.parse(body)
 
@@ -130,6 +168,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Create product
     const product = await prisma.product.create({
       data: validatedData,
       include: {
@@ -137,7 +176,12 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    return NextResponse.json(product, { status: 201 })
+    return NextResponse.json({
+      ...product,
+      price: Number(product.price),
+      compareAtPrice: product.compareAtPrice ? Number(product.compareAtPrice) : null,
+      message: 'Product created successfully',
+    }, { status: 201 })
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
@@ -145,7 +189,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
-    console.error('Create Product Error:', error)
+    console.error('Products POST API Error:', error)
     return NextResponse.json(
       { error: 'Failed to create product' },
       { status: 500 }

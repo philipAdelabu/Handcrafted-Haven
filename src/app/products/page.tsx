@@ -3,13 +3,9 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { 
-  Filter, 
-  Grid3x3, 
-  List, 
-  ChevronDown,
-  X,
+  SlidersHorizontal,
   Search,
-  SlidersHorizontal
+  ChevronRight
 } from 'lucide-react'
 import { ProductGrid } from '@/components/products/ProductGrid'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
@@ -45,11 +41,11 @@ function ProductsContent() {
   const [error, setError] = useState<string | null>(null)
   const [showFilters, setShowFilters] = useState(false)
   const [filters, setFilters] = useState({
-    category: searchParams.get('category') || '',
-    sort: searchParams.get('sort') || 'newest',
-    minPrice: searchParams.get('minPrice') || '',
-    maxPrice: searchParams.get('maxPrice') || '',
-    search: searchParams.get('search') || '',
+    category: searchParams?.get('category') || '',
+    sort: searchParams?.get('sort') || 'newest',
+    minPrice: searchParams?.get('minPrice') || '',
+    maxPrice: searchParams?.get('maxPrice') || '',
+    search: searchParams?.get('search') || '',
   })
 
   const categories = [
@@ -79,7 +75,7 @@ function ProductsContent() {
       setLoading(true)
       setError(null)
       
-      const params = new URLSearchParams(searchParams)
+      const params = new URLSearchParams(searchParams?.toString())
       Object.entries(filters).forEach(([key, value]) => {
         if (value) params.set(key, value)
       })
@@ -120,7 +116,7 @@ function ProductsContent() {
   }
 
   const handlePageChange = (page: number) => {
-    const params = new URLSearchParams(searchParams)
+    const params = new URLSearchParams(searchParams?.toString())
     params.set('page', page.toString())
     window.location.href = `/products?${params.toString()}`
   }
@@ -170,7 +166,6 @@ function ProductsContent() {
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold text-gray-800">Filters</h2>
                 <Button variant="outline" size="sm" onClick={clearFilters}>
-                  <X className="w-3 h-3 mr-1" />
                   Clear All
                 </Button>
               </div>
@@ -263,10 +258,6 @@ function ProductsContent() {
                   Showing <span className="font-semibold">{products.length}</span> of{' '}
                   <span className="font-semibold">{pagination?.total || 0}</span> products
                 </p>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-gray-500">
-                <Grid3x3 className="w-4 h-4" />
-                <span>Grid View</span>
               </div>
             </div>
 

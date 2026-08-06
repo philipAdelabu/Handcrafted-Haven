@@ -17,13 +17,23 @@ const productUpdateSchema = z.object({
   isFeatured: z.boolean().optional(),
 })
 
+// In Next.js 16, params is a Promise that needs to be awaited
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
+
+    if (!id) {
+      return NextResponse.json(
+        { error: 'Product ID is required' },
+        { status: 400 }
+      )
+    }
+
     const product = await prisma.product.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         category: true,
         reviews: {
@@ -34,6 +44,9 @@ export async function GET(
                 image: true,
               },
             },
+          },
+          orderBy: {
+            createdAt: 'desc',
           },
         },
       },
@@ -54,9 +67,11 @@ export async function GET(
       ...product,
       averageRating: avgRating,
       reviewCount: product.reviews.length,
+      price: Number(product.price),
+      compareAtPrice: product.compareAtPrice ? Number(product.compareAtPrice) : null,
     })
   } catch (error) {
-    console.error('Product API Error:', error)
+    console.error('Product GET API Error:', error)
     return NextResponse.json(
       { error: 'Failed to fetch product' },
       { status: 500 }
@@ -66,21 +81,32 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
     
     if (!session?.user || session.user.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
+    const { id } = await params
+
+    if (!id) {
+      return NextResponse.json(
+        { error: 'Product ID is required' },
+        { status: 400 }
+      )
     }
 
     const body = await request.json()
     const validatedData = productUpdateSchema.parse(body)
 
-    // Check if product exists
     const existingProduct = await prisma.product.findUnique({
-      where: { id: params.id },
+      where: { id },
     })
 
     if (!existingProduct) {
@@ -90,7 +116,6 @@ export async function PUT(
       )
     }
 
-    // Check for duplicate slug
     if (validatedData.slug && validatedData.slug !== existingProduct.slug) {
       const duplicate = await prisma.product.findUnique({
         where: { slug: validatedData.slug },
@@ -103,28 +128,15 @@ export async function PUT(
       }
     }
 
-    // Verify category exists if provided
-    if (validatedData.categoryId) {
-      const category = await prisma.category.findUnique({
-        where: { id: validatedData.categoryId },
-      })
-      if (!category) {
-        return NextResponse.json(
-          { error: 'Category not found' },
-          { status: 400 }
-        )
-      }
-    }
-
-    const product = await prisma.product.update({
-      where: { id: params.id },
+    const updatedProduct = await prisma.product.update({
+      where: { id },
       data: validatedData,
       include: {
         category: true,
       },
     })
 
-    return NextResponse.json(product)
+    return NextResponse.json(updatedProduct)
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
@@ -132,7 +144,7 @@ export async function PUT(
         { status: 400 }
       )
     }
-    console.error('Update Product Error:', error)
+    console.error('Product PUT API Error:', error)
     return NextResponse.json(
       { error: 'Failed to update product' },
       { status: 500 }
@@ -142,21 +154,32 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
     
     if (!session?.user || session.user.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
     }
 
-    // Check if product exists
-    const product = await prisma.product.findUnique({
-      where: { id: params.id },
+    const { id } = await params
+
+    if (!id) {
+      return NextResponse.json(
+        { error: 'Product ID is required' },
+        { status: 400 }
+      )
+    }
+
+    const existingProduct = await prisma.product.findUnique({
+      where: { id },
     })
 
-    if (!product) {
+    if (!existingProduct) {
       return NextResponse.json(
         { error: 'Product not found' },
         { status: 404 }
@@ -164,12 +187,14 @@ export async function DELETE(
     }
 
     await prisma.product.delete({
-      where: { id: params.id },
+      where: { id },
     })
 
-    return NextResponse.json({ message: 'Product deleted successfully' })
+    return NextResponse.json({
+      message: 'Product deleted successfully',
+    })
   } catch (error) {
-    console.error('Delete Product Error:', error)
+    console.error('Product DELETE API Error:', error)
     return NextResponse.json(
       { error: 'Failed to delete product' },
       { status: 500 }

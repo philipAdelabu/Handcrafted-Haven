@@ -68,7 +68,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
   return (
     <>
-      <Link href={`/products/${product.slug || product.id}`}>
+      <Link href={`/products/${product.id || product.slug}`}>
         <div className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 relative">
           {/* Image Container */}
           <div className="relative h-64 bg-gradient-to-br from-gray-100 to-gray-200 overflow-hidden">

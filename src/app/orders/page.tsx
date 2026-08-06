@@ -213,7 +213,7 @@ export default function OrdersPage() {
                         <span>{formatDate(order.createdAt)}</span>
                       </div>
                       <div className="font-semibold text-gray-900">
-                        ${order.total.toFixed(2)}
+                        ${Number(order.total).toFixed(2)}
                       </div>
                     </div>
                   </div>
@@ -243,7 +243,7 @@ export default function OrdersPage() {
                             {item.product.name}
                           </p>
                           <p className="text-xs text-gray-500">
-                            {item.quantity} × ${item.price.toFixed(2)}
+                            {item.quantity} × ${Number(item.price).toFixed(2)}
                           </p>
                         </div>
                       </div>
@@ -298,26 +298,26 @@ export default function OrdersPage() {
                         <div className="space-y-2 text-sm">
                           <div className="flex justify-between">
                             <span className="text-gray-500">Subtotal</span>
-                            <span className="font-medium">${order.subtotal.toFixed(2)}</span>
+                            <span className="font-medium">${Number(order.subtotal).toFixed(2)}</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-gray-500">Tax</span>
-                            <span className="font-medium">${order.tax.toFixed(2)}</span>
+                            <span className="font-medium">${Number(order.tax).toFixed(2)}</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-gray-500">Shipping</span>
-                            <span className="font-medium">${order.shipping.toFixed(2)}</span>
+                            <span className="font-medium">${Number(order.shipping).toFixed(2)}</span>
                           </div>
                           {order.discount > 0 && (
                             <div className="flex justify-between text-green-600">
                               <span>Discount</span>
-                              <span>-${order.discount.toFixed(2)}</span>
+                              <span>-${Number(order.discount).toFixed(2)}</span>
                             </div>
                           )}
                           <div className="border-t pt-2 mt-2">
                             <div className="flex justify-between font-bold text-gray-900">
                               <span>Total</span>
-                              <span>${order.total.toFixed(2)}</span>
+                              <span>${Number(order.total).toFixed(2)}</span>
                             </div>
                           </div>
                         </div>
@@ -348,12 +348,12 @@ export default function OrdersPage() {
                               <div>
                                 <p className="font-medium text-gray-800">{item.product.name}</p>
                                 <p className="text-sm text-gray-500">
-                                  {item.quantity} × ${item.price.toFixed(2)}
+                                  {item.quantity} × ${Number(item.price).toFixed(2)}
                                 </p>
                               </div>
                             </div>
                             <div className="font-semibold text-gray-900">
-                              ${(item.quantity * item.price).toFixed(2)}
+                              ${(item.quantity * Number(item.price)).toFixed(2)}
                             </div>
                           </div>
                         ))}

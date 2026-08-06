@@ -1,27 +1,28 @@
 import { notFound } from 'next/navigation'
-import dynamic from 'next/dynamic'
-
-// Dynamic import for the product detail component
-const ProductDetail = dynamic(
-  () => import('@/components/products/ProductDetail').then(mod => mod.ProductDetail),
-
-)
+import { prisma } from '@/lib/db'
+import { ProductDetail } from '@/components/products/ProductDetail'
 
 interface ProductPageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {
+  // In Next.js 16, params is a Promise that needs to be awaited
+  const { id } = await params
+  
+  console.log('Product ID from params:', id)
+
+  if (!id) {
+    console.error('No product ID provided')
+    notFound()
+  }
+
   try {
-    // Dynamic import for Prisma
-    const { prisma } = await import('@/lib/db')
-    
     const product = await prisma.product.findUnique({
       where: { 
-        id: params.id,
-        isActive: true,
+        id: id,
       },
       include: {
         category: true,
@@ -42,6 +43,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
     })
 
     if (!product) {
+      console.log('Product not found with ID:', id)
       notFound()
     }
 
