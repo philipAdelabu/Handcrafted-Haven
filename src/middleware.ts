@@ -2,8 +2,15 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { getToken } from 'next-auth/jwt'
 
+interface Token {
+  id?: string
+  role?: string
+  email?: string
+  name?: string
+}
+
 export async function middleware(request: NextRequest) {
-  const token = await getToken({ req: request })
+  const token = await getToken({ req: request }) as Token | null
   const isAuthPage = request.nextUrl.pathname.startsWith('/auth')
   const isProtectedRoute = 
     request.nextUrl.pathname.startsWith('/cart') ||

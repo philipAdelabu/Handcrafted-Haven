@@ -2,7 +2,6 @@ import { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { prisma } from '../db'
 import { compare } from 'bcryptjs'
-import { User } from '@prisma/client'
 
 export const authOptions: NextAuthOptions = {
   session: {
@@ -61,7 +60,6 @@ export const authOptions: NextAuthOptions = {
   },
   pages: {
     signIn: '/auth/signin',
-    signUp: '/auth/signup',
   },
   secret: process.env.NEXTAUTH_SECRET,
 }

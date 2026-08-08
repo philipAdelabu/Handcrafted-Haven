@@ -21,8 +21,20 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs'
 import { ProductManagement } from '@/components/admin/ProductManagement'
 import { CategoryManagement } from '@/components/admin/CategoryManagement'
 
+interface SessionUser {
+  id: string
+  name?: string | null
+  email?: string | null
+  image?: string | null
+  role: string
+}
+
+interface Session {
+  user: SessionUser
+}
+
 export default function AdminPage() {
-  const { data: session, status } = useSession()
+  const { data: session, status } = useSession() as { data: Session | null, status: 'loading' | 'authenticated' | 'unauthenticated' }
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [stats, setStats] = useState({
@@ -169,7 +181,7 @@ export default function AdminPage() {
         </div>
 
         {/* Quick Actions */}
-        {/* 
+        {/*
         <div className="flex flex-wrap gap-4 mb-8">
           <Button 
             className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
@@ -186,7 +198,7 @@ export default function AdminPage() {
             Add New Category
           </Button>
         </div>  
-        */}
+         */ }
 
         {/* Main Content */}
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">

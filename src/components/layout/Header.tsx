@@ -5,11 +5,22 @@ import { useSession, signOut } from 'next-auth/react'
 import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 
+interface SessionUser {
+  id: string
+  name?: string | null
+  email?: string | null
+  image?: string | null
+  role: string
+}
+
+interface Session {
+  user: SessionUser
+}
+
 export function Header() {
-  const { data: session, status } = useSession()
+  const { data: session, status } = useSession() as { data: Session | null, status: 'loading' | 'authenticated' | 'unauthenticated' }
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
-  // Show loading state
   if (status === 'loading') {
     return (
       <header className="bg-white shadow-sm">
@@ -29,12 +40,10 @@ export function Header() {
     <header className="bg-white shadow-sm">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
-          {/* Logo */}
           <Link href="/" className="text-2xl font-bold text-primary-600">
             Handcrafted Haven
           </Link>
 
-          {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-6">
             <Link href="/products" className="hover:text-primary-600">
               Products
@@ -42,9 +51,9 @@ export function Header() {
             
             {session ? (
               <>
-                   <Link href="/orders" className="hover:text-primary-600">
-                    Orders
-                  </Link>
+                <Link href="/orders" className="hover:text-primary-600">
+                  Orders
+                </Link>
                 {session.user?.role === 'ADMIN' && (
                   <Link href="/admin" className="hover:text-primary-600 font-semibold text-primary-600">
                     Admin Panel
@@ -74,7 +83,6 @@ export function Header() {
             )}
           </nav>
 
-          {/* Mobile Menu Button */}
           <button
             className="md:hidden"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -98,7 +106,6 @@ export function Header() {
           </button>
         </div>
 
-        {/* Mobile Navigation */}
         {isMenuOpen && (
           <nav className="md:hidden py-4 border-t">
             <div className="flex flex-col space-y-4">
