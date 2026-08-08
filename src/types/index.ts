@@ -1,4 +1,4 @@
-import { User, Product, Order, Cart, CartItem } from '@prisma/client'
+import { User, Product, Order, Cart, CartItem, OrderItem, Review } from '@prisma/client'
 
 export type SafeUser = Omit<User, 'password'>
 
@@ -17,4 +17,15 @@ export interface OrderWithItems extends Order {
   items: (OrderItem & {
     product: Product
   })[]
+}
+
+export interface ShippingAddress {
+  firstName: string
+  lastName: string
+  address: string
+  apartment?: string | null
+  city: string
+  state: string
+  zipCode: string
+  country: string
 }

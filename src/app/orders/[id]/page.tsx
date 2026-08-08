@@ -24,16 +24,28 @@ interface OrderPageProps {
   }
 }
 
+// Define the shipping address type
+interface ShippingAddress {
+  firstName: string
+  lastName: string
+  address: string
+  apartment?: string | null
+  city: string
+  state: string
+  zipCode: string
+  country: string
+}
+
 export default async function OrderConfirmationPage({ params }: OrderPageProps) {
   const session = await getServerSession(authOptions)
   
   if (!session?.user?.id) {
     return notFound()
   }
- const { id } = await params
+
   const order = await prisma.order.findUnique({
     where: { 
-      id: id,
+      id: params.id,
     },
     include: {
       items: {
@@ -60,6 +72,9 @@ export default async function OrderConfirmationPage({ params }: OrderPageProps) 
     return notFound()
   }
 
+  // Cast shipping address to proper type
+  const shippingAddress = order.shippingAddress as ShippingAddress | null
+
   const statusColors = {
     PENDING: 'bg-yellow-100 text-yellow-800 border-yellow-200',
     PROCESSING: 'bg-blue-100 text-blue-800 border-blue-200',
@@ -75,6 +90,13 @@ export default async function OrderConfirmationPage({ params }: OrderPageProps) 
     DELIVERED: <CheckCircle className="w-5 h-5" />,
     CANCELLED: <CheckCircle className="w-5 h-5" />,
   }
+
+  // Convert Decimal to number for formatting
+  const subtotal = Number(order.subtotal)
+  const tax = Number(order.tax)
+  const shipping = Number(order.shipping)
+  const discount = Number(order.discount)
+  const total = Number(order.total)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
@@ -148,19 +170,21 @@ export default async function OrderConfirmationPage({ params }: OrderPageProps) 
             </div>
 
             {/* Shipping Address */}
-            <div className="bg-white rounded-2xl shadow-lg p-6">
-              <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <MapPin className="w-5 h-5 text-indigo-500" />
-                Shipping Address
-              </h2>
-              <div className="text-gray-600">
-                <p>{order.shippingAddress.firstName} {order.shippingAddress.lastName}</p>
-                <p>{order.shippingAddress.address}</p>
-                {order.shippingAddress.apartment && <p>{order.shippingAddress.apartment}</p>}
-                <p>{order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.zipCode}</p>
-                <p>{order.shippingAddress.country}</p>
+            {shippingAddress && (
+              <div className="bg-white rounded-2xl shadow-lg p-6">
+                <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  <MapPin className="w-5 h-5 text-indigo-500" />
+                  Shipping Address
+                </h2>
+                <div className="text-gray-600">
+                  <p>{shippingAddress.firstName} {shippingAddress.lastName}</p>
+                  <p>{shippingAddress.address}</p>
+                  {shippingAddress.apartment && <p>{shippingAddress.apartment}</p>}
+                  <p>{shippingAddress.city}, {shippingAddress.state} {shippingAddress.zipCode}</p>
+                  <p>{shippingAddress.country}</p>
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Order Summary */}
@@ -171,28 +195,28 @@ export default async function OrderConfirmationPage({ params }: OrderPageProps) 
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Subtotal</span>
-                  <span className="font-medium">{formatPrice(order.subtotal)}</span>
+                  <span className="font-medium">{formatPrice(subtotal)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Tax (8%)</span>
-                  <span className="font-medium">{formatPrice(order.tax)}</span>
+                  <span className="font-medium">{formatPrice(tax)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Shipping</span>
                   <span className="font-medium">
-                    {order.shipping === 0 ? 'Free' : formatPrice(order.shipping)}
+                    {shipping === 0 ? 'Free' : formatPrice(shipping)}
                   </span>
                 </div>
-                {order.discount > 0 && (
+                {discount > 0 && (
                   <div className="flex justify-between text-sm text-green-600">
                     <span>Discount</span>
-                    <span>-{formatPrice(order.discount)}</span>
+                    <span>-{formatPrice(discount)}</span>
                   </div>
                 )}
                 <div className="border-t border-gray-200 pt-2 mt-2">
                   <div className="flex justify-between font-bold text-lg">
                     <span>Total</span>
-                    <span className="text-indigo-600">{formatPrice(order.total)}</span>
+                    <span className="text-indigo-600">{formatPrice(total)}</span>
                   </div>
                 </div>
               </div>

@@ -77,16 +77,16 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(category, { status: 201 })
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: error.errors[0].message },
-        { status: 400 }
-      )
-    }
-    console.error('Categories POST API Error:', error)
+  if (error instanceof z.ZodError) {
     return NextResponse.json(
-      { error: 'Failed to create category' },
-      { status: 500 }
+      { error: error.issues[0].message },
+      { status: 400 }
     )
   }
+  console.error('Categories POST API Error:', error)
+  return NextResponse.json(
+    { error: 'Failed to create category' },
+    { status: 500 }
+  )
+}
 }

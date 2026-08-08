@@ -137,19 +137,19 @@ export async function PUT(
     })
 
     return NextResponse.json(updatedProduct)
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: error.errors[0].message },
-        { status: 400 }
-      )
-    }
-    console.error('Product PUT API Error:', error)
+} catch (error) {
+  if (error instanceof z.ZodError) {
     return NextResponse.json(
-      { error: 'Failed to update product' },
-      { status: 500 }
+      { error: error.issues[0].message },
+      { status: 400 }
     )
   }
+  console.error('Product PUT API Error:', error)
+  return NextResponse.json(
+    { error: 'Failed to update product' },
+    { status: 500 }
+  )
+}
 }
 
 export async function DELETE(

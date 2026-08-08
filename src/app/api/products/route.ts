@@ -182,17 +182,17 @@ export async function POST(request: NextRequest) {
       compareAtPrice: product.compareAtPrice ? Number(product.compareAtPrice) : null,
       message: 'Product created successfully',
     }, { status: 201 })
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: error.errors[0].message },
-        { status: 400 }
-      )
-    }
-    console.error('Products POST API Error:', error)
+ } catch (error) {
+  if (error instanceof z.ZodError) {
     return NextResponse.json(
-      { error: 'Failed to create product' },
-      { status: 500 }
+      { error: error.issues[0].message },
+      { status: 400 }
     )
   }
+  console.error('Products POST API Error:', error)
+  return NextResponse.json(
+    { error: 'Failed to create product' },
+    { status: 500 }
+  )
+}
 }

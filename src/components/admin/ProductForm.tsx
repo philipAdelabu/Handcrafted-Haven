@@ -62,12 +62,12 @@ export function ProductForm({ product, onClose, onSuccess }: ProductFormProps) {
     })
   }
 
-  const handleImageRemove = (index: number) => {
-    setFormData({
-      ...formData,
-      images: formData.images.filter((_, i) => i !== index),
-    })
-  }
+const handleImageRemove = (index: number) => {
+  setFormData({
+    ...formData,
+    images: formData.images.filter((_: string, i: number) => i !== index),
+  })
+}
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -246,7 +246,7 @@ export function ProductForm({ product, onClose, onSuccess }: ProductFormProps) {
             {/* Image Gallery */}
             {formData.images.length > 0 && (
               <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {formData.images.map((url, index) => (
+             {formData.images.map((url: string, index: number) => (
                   <div key={index} className="relative group">
                     <div className="relative w-full h-24 rounded-lg overflow-hidden border border-gray-200">
                       <img
