@@ -12,13 +12,16 @@ const categoryUpdateSchema = z.object({
   isActive: z.boolean().optional(),
 })
 
+// GET - Fetch a single category
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await context.params
+
     const category = await prisma.category.findUnique({
-      where: { id: params.id },
+      where: { id: id },
       include: {
         products: {
           select: {
@@ -44,7 +47,7 @@ export async function GET(
 
     return NextResponse.json(category)
   } catch (error) {
-    console.error('Category API Error:', error)
+    console.error('Category GET API Error:', error)
     return NextResponse.json(
       { error: 'Failed to fetch category' },
       { status: 500 }
@@ -52,9 +55,10 @@ export async function GET(
   }
 }
 
+// PUT - Update a category
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -63,12 +67,13 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await context.params
     const body = await request.json()
     const validatedData = categoryUpdateSchema.parse(body)
 
     // Check if category exists
     const existingCategory = await prisma.category.findUnique({
-      where: { id: params.id },
+      where: { id: id },
     })
 
     if (!existingCategory) {
@@ -78,12 +83,12 @@ export async function PUT(
       )
     }
 
-    // Check for duplicate name or slug (excluding current category)
+    // Check for duplicate name or slug
     if (validatedData.name || validatedData.slug) {
       const duplicate = await prisma.category.findFirst({
         where: {
           AND: [
-            { NOT: { id: params.id } },
+            { NOT: { id: id } },
             {
               OR: [
                 { name: validatedData.name || existingCategory.name },
@@ -103,7 +108,7 @@ export async function PUT(
     }
 
     const category = await prisma.category.update({
-      where: { id: params.id },
+      where: { id: id },
       data: validatedData,
     })
 
@@ -115,7 +120,7 @@ export async function PUT(
         { status: 400 }
       )
     }
-    console.error('Update Category Error:', error)
+    console.error('Category PUT API Error:', error)
     return NextResponse.json(
       { error: 'Failed to update category' },
       { status: 500 }
@@ -123,9 +128,10 @@ export async function PUT(
   }
 }
 
+// DELETE - Delete a category
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -134,9 +140,10 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Check if category exists
+    const { id } = await context.params
+
     const category = await prisma.category.findUnique({
-      where: { id: params.id },
+      where: { id: id },
       include: {
         _count: {
           select: { products: true },
@@ -154,18 +161,18 @@ export async function DELETE(
     // Check if category has products
     if (category._count.products > 0) {
       return NextResponse.json(
-        { error: 'Cannot delete category with existing products. Remove products first or reassign them.' },
+        { error: 'Cannot delete category with existing products' },
         { status: 400 }
       )
     }
 
     await prisma.category.delete({
-      where: { id: params.id },
+      where: { id : id},
     })
 
     return NextResponse.json({ message: 'Category deleted successfully' })
   } catch (error) {
-    console.error('Delete Category Error:', error)
+    console.error('Category DELETE API Error:', error)
     return NextResponse.json(
       { error: 'Failed to delete category' },
       { status: 500 }

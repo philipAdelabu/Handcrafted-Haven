@@ -12,6 +12,7 @@ const categorySchema = z.object({
   isActive: z.boolean().default(true),
 })
 
+// GET - Fetch all categories
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
@@ -34,7 +35,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(categories)
   } catch (error) {
-    console.error('Categories API Error:', error)
+    console.error('Categories GET API Error:', error)
     return NextResponse.json(
       { error: 'Failed to fetch categories' },
       { status: 500 }
@@ -42,6 +43,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
+// POST - Create a new category
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
@@ -53,7 +55,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const validatedData = categorySchema.parse(body)
 
-    // Check if category with same name or slug exists
     const existing = await prisma.category.findFirst({
       where: {
         OR: [
@@ -82,7 +83,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
-    console.error('Create Category Error:', error)
+    console.error('Categories POST API Error:', error)
     return NextResponse.json(
       { error: 'Failed to create category' },
       { status: 500 }

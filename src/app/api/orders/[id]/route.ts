@@ -3,10 +3,10 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 
-// GET - Fetch a specific order by ID
+// GET - Fetch a specific order
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -15,10 +15,10 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await context.params
+
     const order = await prisma.order.findUnique({
-      where: { 
-        id: params.id,
-      },
+      where: { id: id },
       include: {
         items: {
           include: {
@@ -42,7 +42,6 @@ export async function GET(
       )
     }
 
-    // Check if the order belongs to the user or user is admin
     if (order.userId !== session.user.id && session.user.role !== 'ADMIN') {
       return NextResponse.json(
         { error: 'Unauthorized to view this order' },
@@ -60,10 +59,10 @@ export async function GET(
   }
 }
 
-// PATCH - Update order status (Admin only)
+// PATCH - Update order status
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -72,7 +71,6 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Only admin can update order status
     if (session.user.role !== 'ADMIN') {
       return NextResponse.json(
         { error: 'Forbidden - Admin access required' },
@@ -80,6 +78,7 @@ export async function PATCH(
       )
     }
 
+    const { id } = await context.params
     const body = await request.json()
     const { status } = body
 
@@ -99,7 +98,7 @@ export async function PATCH(
     }
 
     const order = await prisma.order.update({
-      where: { id: params.id },
+      where: { id: id },
       data: { status },
       include: {
         items: {

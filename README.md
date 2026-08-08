@@ -1,3 +1,7 @@
+# Handcrafted Haven Ecommerce
+
+A nextjs backend powered e-commerce
+
 ## If you get "Unauthorized" error:
 
 Make sure you're logged in. The cart API requires authentication.
