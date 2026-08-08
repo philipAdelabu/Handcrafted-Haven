@@ -41,16 +41,7 @@ export default function CartPage() {
   const [updating, setUpdating] = useState<string | null>(null)
   const [checkoutLoading, setCheckoutLoading] = useState(false)
 
-  useEffect(() => {
-    if (status === 'loading') return
-    
-    if (!session) {
-      router.push('/auth/signin?callbackUrl=/cart')
-      return
-    }
-
-    fetchCart()
-  }, [session, status, router])
+ 
 
   const fetchCart = async () => {
     try {
@@ -65,22 +56,39 @@ export default function CartPage() {
     }
   }
 
+   useEffect(() => {
+    if (status === 'loading') return
+    
+    if (!session) {
+      router.push('/auth/signin?callbackUrl=/cart')
+      return
+    }
+
+    async function fetchData(){
+          await fetchCart()
+    }
+
+     fetchData();
+   
+  }, [session, status, router])
+
   const updateQuantity = async (productId: string, quantity: number) => {
     if (quantity < 1) {
       await removeItem(productId)
       return
     }
 
-    setUpdating(productId)
+     setUpdating(productId)
+
     try {
       const response = await fetch('/api/cart', {
-        method: 'POST',
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ productId, quantity }),
       })
 
       if (!response.ok) throw new Error('Failed to update cart')
-      
+     
       await fetchCart()
     } catch (error) {
       console.error('Update error:', error)
@@ -240,17 +248,17 @@ export default function CartPage() {
                       {/* Quantity Controls */}
                       <div className="flex items-center gap-2">
                         <button
-                          onClick={() => updateQuantity(item.productId, item.quantity - 1)}
+                          onClick={() => updateQuantity(item.productId, (Number(item.quantity) - 1))}
                           disabled={updating === item.productId || item.quantity <= 1}
                           className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         >
                           <Minus className="w-4 h-4 text-gray-600" />
                         </button>
                         <span className="w-10 text-center font-semibold text-gray-800">
-                          {updating === item.productId ? '...' : item.quantity}
+                          {updating === item.productId ? '...' : Number(item.quantity)}
                         </span>
                         <button
-                          onClick={() => updateQuantity(item.productId, item.quantity + 1)}
+                          onClick={() => updateQuantity(item.productId, (Number(item.quantity) + 1))}
                           disabled={updating === item.productId || item.quantity >= item.product.stock}
                           className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         >

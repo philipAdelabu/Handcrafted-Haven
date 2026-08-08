@@ -39,9 +39,7 @@ export function ProductManagement() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
 
-  useEffect(() => {
-    fetchProducts()
-  }, [])
+
 
   const fetchProducts = async () => {
     try {
@@ -54,6 +52,13 @@ export function ProductManagement() {
       setLoading(false)
     }
   }
+
+    useEffect(() => {
+    async function fetchProductData(){
+       await  fetchProducts();
+    }
+    fetchProductData()
+  }, [])
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this product?')) return
@@ -145,7 +150,7 @@ export function ProductManagement() {
           Add New Product
         </Button>
       </div>
-
+ 
       {/* Products Table */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
         {filteredProducts.length === 0 ? (

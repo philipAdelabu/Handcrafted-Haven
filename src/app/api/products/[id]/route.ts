@@ -33,7 +33,7 @@ export async function GET(
     }
 
     const product = await prisma.product.findUnique({
-      where: { id },
+      where: { id :id },
       include: {
         category: true,
         reviews: {
@@ -106,7 +106,7 @@ export async function PUT(
     const validatedData = productUpdateSchema.parse(body)
 
     const existingProduct = await prisma.product.findUnique({
-      where: { id },
+      where: { id: id },
     })
 
     if (!existingProduct) {
@@ -129,7 +129,7 @@ export async function PUT(
     }
 
     const updatedProduct = await prisma.product.update({
-      where: { id },
+      where: { id : id },
       data: validatedData,
       include: {
         category: true,
@@ -176,7 +176,7 @@ export async function DELETE(
     }
 
     const existingProduct = await prisma.product.findUnique({
-      where: { id },
+      where: { id: id },
     })
 
     if (!existingProduct) {
@@ -187,7 +187,7 @@ export async function DELETE(
     }
 
     await prisma.product.delete({
-      where: { id },
+      where: { id: id },
     })
 
     return NextResponse.json({
