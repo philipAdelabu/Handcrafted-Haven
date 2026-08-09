@@ -112,6 +112,12 @@ export function Header() {
               <Link href="/products" className="hover:text-primary-600">
                 Products
               </Link>
+               <Link href="/about" className="hover:text-primary-600">
+              About
+            </Link>
+            <Link href="/contact" className="hover:text-primary-600">
+              Contact
+            </Link>
               {session ? (
                 <>
                   <Link href="/orders" className="hover:text-primary-600">
