@@ -105,7 +105,7 @@ export default function CheckoutPage() {
     const result = await response.json()
     
     // Redirect to order confirmation page
-    router.push(`/orders/${result.order.id}`)
+    router.push(`/orders`)
   } catch (error) {
     console.error('Checkout error:', error)
     alert(error instanceof Error ? error.message : 'Failed to process checkout. Please try again.')
